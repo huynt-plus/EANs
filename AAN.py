@@ -7,7 +7,7 @@ if __name__ == '__main__':
     tf.app.flags.DEFINE_integer('embedding_dim', 300, 'dimension of word embedding')
     tf.app.flags.DEFINE_integer('batch_size', 100, 'number of example per batch')
     tf.app.flags.DEFINE_integer('n_epoch', 300, 'number of epoch')
-    tf.app.flags.DEFINE_integer('n_hidden', 100, 'number of hidden unit')
+    tf.app.flags.DEFINE_integer('n_hidden', 300, 'number of hidden unit')
     tf.app.flags.DEFINE_integer('n_class', 3, 'number of distinct class')
     tf.app.flags.DEFINE_integer('pre_processed', 0, 'Whether the data is pre-processed')
     tf.app.flags.DEFINE_float('learning_rate', 1e-3, 'learning rate')
