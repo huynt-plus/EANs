@@ -36,8 +36,8 @@ def get_data_info(train_fname, test_fname, save_fname, pre_processed):
         for i in range(0, len(lines), 3):
             sptoks = nlp(lines[i].decode('utf8'))
             words.extend([sp.text.lower() for sp in sptoks if sp.text.lower() not in stop])
-            if len(sptoks) - 1 > max_context_len:
-                max_context_len = len(sptoks) - 1
+            if len(sptoks) > max_context_len:
+                max_context_len = len(sptoks)
             sptoks = nlp(lines[i + 1].decode('utf8'))
             if len(sptoks) > max_aspect_len:
                 max_aspect_len = len(sptoks)
@@ -50,8 +50,8 @@ def get_data_info(train_fname, test_fname, save_fname, pre_processed):
         for i in range(0, len(lines), 3):
             sptoks = nlp(lines[i].decode('utf8'))
             words.extend([sp.text.lower() for sp in sptoks if sp.text.lower() not in stop])
-            if len(sptoks) - 1 > max_context_len:
-                max_context_len = len(sptoks) - 1
+            if len(sptoks) > max_context_len:
+                max_context_len = len(sptoks)
             sptoks = nlp(lines[i + 1].decode('utf8'))
             if len(sptoks) > max_aspect_len:
                 max_aspect_len = len(sptoks)
@@ -129,7 +129,7 @@ def read_data(fname, word2id, max_aspect_len, max_context_len, save_fname, pre_p
 def load_word_embeddings(fname, embedding_dim, word2id):
     if not os.path.isfile(fname):
         raise IOError(ENOENT, 'Not a file', fname)
-    print 'Loading Glove...'
+    print ('Loading Glove...')
     word2vec = np.random.uniform(-0.01, 0.01, [len(word2id), embedding_dim])
     oov = len(word2id)
     with open(fname, 'rb') as f:
@@ -147,14 +147,14 @@ def load_word_embeddings(fname, embedding_dim, word2id):
 def load_bin_vec(fname, embedding_dim, word2id):
     if not os.path.isfile(fname):
         raise IOError(ENOENT, 'Not a file', fname)
-    print 'Loading GoogleW2V...'
+    print ('Loading GoogleW2V...')
     word2vec = np.random.uniform(-0.01, 0.01, [len(word2id), embedding_dim])
     oov = len(word2id)
     with open(fname, "rb") as f:
         header = f.readline()
         vocab_size, layer1_size = map(int, header.split())
         binary_len = np.dtype('float32').itemsize * layer1_size
-        for line in xrange(vocab_size):
+        for line in range(vocab_size):
             word = []
             while True:
                 ch = f.read(1)
@@ -249,7 +249,7 @@ def get_lex_file_list(lex_file_path):
             if os.path.isfile(path):
                 lex_file_list.append(path)
             else:
-                print 'wrong file name(s) in the lex_config.txt\n%s' % path
+                print ('wrong file name(s) in the lex_config.txt\n%s' % path)
                 return None
 
     return lex_file_list

@@ -5,6 +5,7 @@ from utils import get_batch_index
 from tensorflow.contrib import rnn
 import numpy as np
 import pickle
+from tensorflow.python.ops import math_ops
 
 # Aspect lexicon embedding is concatenated with Aspect embedding
 # Context lexicon embedding is concatenated with Context embedding
@@ -67,7 +68,7 @@ class ALAN_model(object):
         return tf.cast(seq_len, tf.int32)
 
     def build_model(self):
-        print "Building model..."
+        print ("Building model...")
         # with tf.name_scope('inputs'):
         self.aspects = tf.placeholder(tf.int32, [None, self.max_aspect_len], name="input_aspects")
         self.contexts = tf.placeholder(tf.int32, [None, self.max_context_len], name="input_contexts")
@@ -169,18 +170,22 @@ class ALAN_model(object):
             aspect_att_iter = aspect_att_iter.unstack(self.aspect_att)
             context_att_rep = tf.TensorArray(size=batch_size, dtype=tf.float32)
             context_att = tf.TensorArray(size=batch_size, dtype=tf.float32)
-
+            context_lens_iter = tf.TensorArray(tf.int32, 1, dynamic_size=True, infer_shape=False)
+            context_lens_iter = context_lens_iter.unstack(self.context_lens)
             def _condition(i, context_att_rep, context_att):
                 return i < batch_size
 
             def _body(i, context_att_rep, context_att):
                 a = context_att_outputs_iter.read(i)
                 b = aspect_att_iter.read(i)
+                l = math_ops.to_int32(context_lens_iter.read(i))
                 context_score = tf.reshape(tf.nn.tanh(
                     tf.matmul(tf.matmul(a, weights['context_score']),
                               tf.reshape(b, [-1, 1])) + biases['context_score']), [1, -1])
+                context_att_temp = tf.concat([tf.nn.softmax(tf.slice(context_score, [0, 0], [1, l])),
+                                              tf.zeros([1, self.max_context_len - l])], 1)
 
-                context_att_temp = tf.nn.softmax(context_score)
+                # context_att_temp = tf.nn.softmax(context_score)
                 context_att = context_att.write(i, context_att_temp)
                 context_att_rep = context_att_rep.write(i, tf.matmul(context_att_temp, a))
                 return (i + 1, context_att_rep, context_att)
@@ -215,8 +220,6 @@ class ALAN_model(object):
             timestamp = str(int(time.time()))
             self.out_dir = 'logs/' + str(timestamp) + '_r' + str(self.learning_rate) + '_b' + str(self.batch_size) + '_h' + \
                            str(self.n_hidden) + '_e' + str(self.n_epoch)
-
-            print self.out_dir
 
             self.train_summary_writer = tf.summary.FileWriter(self.out_dir + '/train', self.sess.graph)
             self.test_summary_writer = tf.summary.FileWriter(self.out_dir + '/test', self.sess.graph)
@@ -282,7 +285,7 @@ class ALAN_model(object):
 
     def analysis(self, train_data, test_data):
         timestamp = str(int(time.time()))
-        print "Analyzing_" + timestamp
+        print ("Analyzing_" + timestamp)
         aspects, contexts, labels, aspect_lens, context_lens, aspect_lex, context_lex = zip(*train_data)
         with open('analysis/train_' + str(timestamp) + '.txt', 'w') as f:
             for sample, num in self.get_batch_data(aspects, contexts, labels, aspect_lens, context_lens,

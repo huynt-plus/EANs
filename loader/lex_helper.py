@@ -17,7 +17,7 @@ class LexHelper(object):
         self.max_context_len = max_context_len
 
     def build_lex_embeddings(self):
-        print 'Building lexicon embeddings'
+        print ('Building lexicon embeddings')
 
         contexts_train, _ = self.pad_sentences(self.train_contexts, self.max_context_len)
         aspects_train, _ = self.pad_sentences(self.train_aspects, self.max_aspect_len)
@@ -42,8 +42,8 @@ class LexHelper(object):
                 lexiconList = np.append(lexiconList, temp)
 
             if len(lexiconList) > 16:
-                print len(lexiconList)
-                print '======================over 15======================'
+                print (len(lexiconList))
+                print ('======================over 15======================')
             return lexiconList
 
         context_train_lex = np.array([[get_index_of_vocab_lex(lexiconModel, word) for word in sentence] for sentence in contexts_train])

@@ -35,6 +35,8 @@ if __name__ == '__main__':
     train_context_lens, train_aspect_texts, train_context_texts = load_data(FLAGS.train_fname, FLAGS.word2id,
                                                                             FLAGS.max_aspect_len, FLAGS.max_context_len,
                                                                             FLAGS.train_data, FLAGS.pre_processed)
+
+
     test_aspects, test_contexts, test_labels, test_aspect_lens, \
     test_context_lens, test_aspect_texts, test_context_texts = load_data(FLAGS.test_fname, FLAGS.word2id,
                                                                          FLAGS.max_aspect_len, FLAGS.max_context_len,
@@ -63,5 +65,5 @@ if __name__ == '__main__':
         model = ALAN_model(FLAGS, sess)
         model.build_model()
         model.train(sess, train_data, test_data)
-    print "model=ALAN, model_path=%s, embedding=%s, batch-size=%s, n_epoch=%s, n_hidden=%s, data=%s" % (
-        model.out_dir, FLAGS.embedding, FLAGS.batch_size, FLAGS.n_epoch, FLAGS.n_hidden, FLAGS.train_fname)
+    print ("model=ALAN, model_path=%s, embedding=%s, batch-size=%s, n_epoch=%s, n_hidden=%s, data=%s" % (
+        model.out_dir, FLAGS.embedding, FLAGS.batch_size, FLAGS.n_epoch, FLAGS.n_hidden, FLAGS.train_fname))

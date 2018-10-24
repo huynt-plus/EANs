@@ -3,7 +3,7 @@ import time, os
 from tensorflow.contrib import layers
 from utils import get_batch_index
 from tensorflow.contrib import rnn
-
+from tensorflow.python.ops import math_ops
 # Aspect embedding is concatenated with Context embedding
 
 class AAN_model(object):
@@ -157,18 +157,21 @@ class AAN_model(object):
             aspect_att_iter = aspect_att_iter.unstack(aspect_att)
             context_att_rep = tf.TensorArray(size=batch_size, dtype=tf.float32)
             context_att = tf.TensorArray(size=batch_size, dtype=tf.float32)
-
+            context_lens_iter = tf.TensorArray(tf.int32, 1, dynamic_size=True, infer_shape=False)
+            context_lens_iter = context_lens_iter.unstack(self.context_lens)
             def _condition(i, context_att_rep, context_att):
                 return i < batch_size
 
             def _body(i, context_att_rep, context_att):
                 a = context_att_outputs_iter.read(i)
                 b = aspect_att_iter.read(i)
+                l = math_ops.to_int32(context_lens_iter.read(i))
                 context_score = tf.reshape(tf.nn.tanh(
                     tf.matmul(tf.matmul(a, weights['context_score']),
                               tf.reshape(b, [-1, 1])) + biases['context_score']), [1, -1])
-
-                context_att_temp = tf.nn.softmax(context_score)
+                context_att_temp = tf.concat([tf.nn.softmax(tf.slice(context_score, [0, 0], [1, l])),
+                                              tf.zeros([1, self.max_context_len - l])], 1)
+                # context_att_temp = tf.nn.softmax(context_score)
                 context_att = context_att.write(i, context_att_temp)
                 context_att_rep = context_att_rep.write(i, tf.matmul(context_att_temp, a))
                 return (i + 1, context_att_rep, context_att)
